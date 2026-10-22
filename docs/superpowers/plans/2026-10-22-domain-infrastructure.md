@@ -19,10 +19,10 @@
 
 输出：Task、Message、CodeArtifact、ReviewIssue、ReviewReport、FixResult、RunState、ExecutionEvent；`to_dict/from_dict`；`ReviewReport.validate_for(code)`；`FixResult.validate_for(code, report)`；`RunState.transition(status, ...)`。
 
-- [ ] 先写边界输入、报告矛盾、版本错配、嵌套 JSON 往返、不可变快照和状态回退测试。
-- [ ] 运行 `python -m unittest discover -s tests -p test_domain.py -v`，确认因缺少模块失败。
-- [ ] 实现 dataclass 契约、类型校验、跨对象关系校验及状态迁移。
-- [ ] 同一命令确认通过后提交领域模块。
+- [x] 先写边界输入、报告矛盾、版本错配、嵌套 JSON 往返、不可变快照和状态回退测试。
+- [x] 运行 `python -m unittest discover -s tests -p test_domain.py -v`，确认因缺少模块失败。
+- [x] 实现 dataclass 契约、类型校验、跨对象关系校验及状态迁移。
+- [x] 同一命令确认通过后提交领域模块。
 
 测试用例核心：`ReviewReport(artifact_version=1, verdict="pass", issues=(major_issue,), summary="检查")` 必须拒绝；`running.transition("pending")` 必须拒绝。
 
@@ -32,10 +32,10 @@
 
 消费 Task、CodeArtifact、ReviewReport、RunState、Message、ExecutionEvent。输出 `ProviderRequest`、`Provider.complete(request) -> str`、`MockProvider` 和 `ArtifactStore`。
 
-- [ ] 先写四种场景、请求版本错配、隔离运行、历史冲突、路径越界、消息引用、日志 JSONL 和写入故障测试。
-- [ ] 执行 `python -m unittest discover -s tests -p test_infrastructure.py -v`，确认缺少实现。
-- [ ] 实现无网络 Mock；save_task/save_code/save_review/save_fix/save_state/append_message/append_event，失败统一 StorageError。
-- [ ] 执行上述测试和全部测试后提交。
+- [x] 先写四种场景、请求版本错配、隔离运行、历史冲突、路径越界、消息引用、日志 JSONL 和写入故障测试。
+- [x] 执行 `python -m unittest discover -s tests -p test_infrastructure.py -v`，确认缺少实现。
+- [x] 实现无网络 Mock；save_task/save_code/save_review/save_fix/save_state/append_message/append_event，磁盘故障统一 StorageError，契约错误保持 ValidationError。
+- [x] 执行上述测试和全部测试后提交。
 
 测试用例核心：重复 `store.save_code(code_v1)` 必须失败且原内容保留；`store.resolve_ref("../outside.json")` 必须拒绝。
 
@@ -43,10 +43,10 @@
 
 文件：`examples/infrastructure_demo.py`、`docs/MODULE_GUIDE.md`、README、Design、开发流程及验收记录。
 
-- [ ] 示例只展示请求调用与仓储 API，清楚标注不含自动编排，不执行代码。
-- [ ] 文档给出 PowerShell 安装、测试、示例命令，字段、异常、目录和限制。
-- [ ] 运行全部测试、四种示例、编译检查和 `git diff --check`。
-- [ ] 自审接口与文档，合并 main，提交推送并核对远程 SHA。
+- [x] 示例只展示请求调用与仓储 API，清楚标注不含自动编排，不执行代码。
+- [x] 文档给出 PowerShell 安装、测试、示例命令，字段、异常、目录和限制。
+- [x] 运行全部测试、四种示例、编译检查和 `git diff --check`。
+- [x] 完成接口自审、独立代码审查和修复回归；Git 集成结果以仓库提交历史为准。
 
 ## 执行方式
 
