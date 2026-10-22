@@ -6,7 +6,7 @@
 
 M1 提供严格、不可变且可 JSON 编解码的数据契约；M2 提供无网络 Mock 模型、独立运行目录、版本化产物仓储、结构化消息和执行事件。模块之间没有模型 SDK 依赖。
 
-三个 Agent 和有界编排已在 M3/M4 实现，见 [工作流说明](WORKFLOW_GUIDE.md)。本文聚焦 M1/M2 模块；真实模型调用、调用超时和重试尚未实现。ProviderError 已预留 retryable 标识；Mock 的调用失败不可重试。RunState 中修复计数只能是 0—2，何时增加由编排器负责。
+三个 Agent 和有界编排已实现，见 [工作流说明](WORKFLOW_GUIDE.md)；真实 HTTP 调用、超时与重试也已接入，见 [HTTP 说明](HTTP_PROVIDER.md)。本文聚焦 M1/M2；Mock 调用失败不可重试，真实调用按 retryable 分类处理。RunState 修复计数为 0—2，由编排器维护。
 
 ## 2. 安装和验证
 

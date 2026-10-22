@@ -1,0 +1,14 @@
+{
+  "date": "2026-10-22",
+  "kind": "external-model-smoke",
+  "service": "DeepSeek",
+  "base_url": "https://api.deepseek.com",
+  "requested_model": "deepseek-flash",
+  "reasoning_effort": "low",
+  "status": "succeeded",
+  "repair_count": 0,
+  "elapsed_seconds": 3.12,
+  "run_id": "577e9dca98f0473eba2ba453488f4433",
+  "error": null,
+  "persistence_errors": []
+}

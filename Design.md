@@ -1,10 +1,10 @@
 # 架构与接口设计
 
-版本：0.3；日期：2026-10-22；状态：领域契约、Mock、仓储日志、三个 Agent 及有界编排已实现。通用 CLI 与 HTTP Provider 仍为规划。实际接口见 [基础模块说明](docs/MODULE_GUIDE.md) 和 [Agent/编排说明](docs/WORKFLOW_GUIDE.md)。
+版本：1.0；日期：2026-10-22；状态：领域契约、Mock、仓储日志、三个 Agent、有界编排、CLI 与 HTTP Provider 均已实现。接口见 [基础模块](docs/MODULE_GUIDE.md)、[编排](docs/WORKFLOW_GUIDE.md)、[CLI](docs/CLI_GUIDE.md) 及 [HTTP](docs/HTTP_PROVIDER.md)。
 
 ## 1. 分层架构
 
-采用 Python 单进程架构，以显式状态机编排三个 Agent。当前由 workflow_demo 示例驱动，通用 CLI 待实现。确定性 Mock 已提供；兼容聊天补全协议的 HTTP Provider 待接入，具体服务、模型及依赖版本届时验证并锁定。
+采用 Python 单进程架构，以显式状态机编排三个 Agent。CLI 通过 run/demo 装配配置与 Provider，支持确定性 Mock 或兼容 Chat Completions 的 HTTP 服务。真实验收使用用户选择的 DeepSeek V4.1 Flash，服务别名为 deepseek-flash。运行代码无第三方依赖。
 
 ```mermaid
 flowchart TD
@@ -67,7 +67,7 @@ Agent 不直接写文件，也不调用其他 Agent；Provider 不参与状态�
 
 运行正常迁移为 pending → running → succeeded / needs_attention / failed；启动前错误也允许 pending → failed，终态不允许再次变更。节点状态为 pending、running、completed、failed、skipped。审查通过且存在下一允许修复轮次时，记录该轮 skipped；多轮节点使用 review_0、repair_1、review_1 等执行 ID。默认修复上限两轮，可用 WorkflowConfig 降至 0 或 1。
 
-节点完成前先校验响应结构和版本关系。磁盘失败时不得宣告成功；若无法保存 failed 状态，CLI 输出错误到标准错误流并返回非零退出码。首期不提供崩溃后自动续跑，已有文件用于排查，用户重新发起一次运行。
+节点完成前先校验响应结构和版本关系。磁盘失败不得宣告成功；无法保存 failed 状态时，RunResult.persistence_errors 返回诊断，CLI 人类输出到 stderr，JSON 模式写入结构化结果。首期不提供崩溃续跑。ExecutionEvent.phase 区分 node 与 provider；HTTP 重试由 context-local observer 转换为事件，落盘后再通知 CLI 进度回调。
 
 ## 6. 运行产物布局
 

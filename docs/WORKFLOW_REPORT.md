@@ -2,6 +2,8 @@
 
 日期：2026-10-22；开发目录：`E:\python_project\SE\SE_02`。
 
+本文是 M3/M4 阶段的历史记录。CLI、真实模型与交付现已另行完成，最新状态及测试数量见 [最终报告](FINAL_ACCEPTANCE.md)。
+
 ## 1. 本轮交付
 
 - 三个独立 Agent：CodingAgent、ReviewAgent、RepairAgent；统一 AgentInput/Agent Protocol。

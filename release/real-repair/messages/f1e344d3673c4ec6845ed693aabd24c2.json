@@ -1,0 +1,10 @@
+{
+  "message_id": "f1e344d3673c4ec6845ed693aabd24c2",
+  "run_id": "224391c8319843ebbed0ebcdd35b9286",
+  "sender": "reviewer",
+  "receiver": "fixer",
+  "kind": "review",
+  "payload_ref": "reviews/review_0.json",
+  "created_at": "2026-10-22T13:01:00.027745+00:00",
+  "schema_version": 1
+}

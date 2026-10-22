@@ -4,10 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "se02-workflow"
-version = "0.1.0"
-description = "Domain contracts and offline infrastructure for a three-agent workflow"
+version = "0.2.0"
+description = "Three-agent code review workflow with CLI and HTTP model support"
+readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[project.scripts]
+se02 = "se02.cli:main"

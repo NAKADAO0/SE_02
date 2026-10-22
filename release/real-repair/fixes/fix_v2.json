@@ -1,0 +1,13 @@
+{
+  "code_artifact": {
+    "artifact_id": "injected-empty-sum-fixed",
+    "version": 2,
+    "source": "def total(values):\n    return sum(values)\n",
+    "explanation": "Returns the built-in sum of the integer list directly; sum already yields 0 for an empty iterable, so the empty-list boundary case now returns 0 as required. Pure function, no printing, file I/O, or external dependencies.",
+    "language": "python",
+    "parent_version": 1
+  },
+  "changes": {
+    "empty-list-returns-none": "Removed the `if values else None` conditional and return `sum(values)` directly, so an empty list now yields 0 instead of None."
+  }
+}

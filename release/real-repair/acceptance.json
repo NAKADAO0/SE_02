@@ -1,0 +1,13 @@
+{
+  "kind": "external-model-acceptance",
+  "service_url": "https://api.deepseek.com",
+  "requested_model": "deepseek-flash",
+  "reasoning_effort": "low",
+  "initial_code": "known-defect-fixture",
+  "status": "succeeded",
+  "repair_count": 1,
+  "run_id": "224391c8319843ebbed0ebcdd35b9286",
+  "error": null,
+  "elapsed_seconds": 5.72,
+  "generated_code_executed": false
+}

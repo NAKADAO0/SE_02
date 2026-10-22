@@ -1,0 +1,8 @@
+{
+  "artifact_id": "injected-empty-sum",
+  "version": 1,
+  "source": "def total(values):\n    return sum(values) if values else None\n",
+  "explanation": "Known-defect fixture, not model-generated initial code",
+  "language": "python",
+  "parent_version": null
+}

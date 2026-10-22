@@ -1,0 +1,8 @@
+{
+  "artifact_id": "live_acceptance_total_v1",
+  "version": 1,
+  "source": "def total(values):\n    \"\"\"Return the sum of all integers in ``values``.\n\n    An empty list yields 0. The function is pure: it does not mutate the\n    input, print, perform I/O, or rely on external dependencies.\n    \"\"\"\n    result = 0\n    for value in values:\n        result += value\n    return result\n",
+  "explanation": "Defines a pure function total(values) that accumulates the integers of the given list into a local variable starting at 0 and returns it, so an empty list naturally returns 0. It performs no printing, no file or network I/O, uses only built-in Python, and does not mutate its argument.",
+  "language": "python",
+  "parent_version": null
+}

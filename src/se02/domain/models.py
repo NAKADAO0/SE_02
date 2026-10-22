@@ -178,6 +178,7 @@ class ExecutionEvent(Contract):
     node: str
     status: NodeStatus
     attempt: int = 1
+    phase: Literal["node", "provider"] = "node"
     artifact_version: int | None = None
     elapsed_ms: float | None = None
     detail: str | None = None

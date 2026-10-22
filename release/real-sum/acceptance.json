@@ -1,0 +1,13 @@
+{
+  "kind": "external-model-acceptance",
+  "service_url": "https://api.deepseek.com",
+  "requested_model": "deepseek-flash",
+  "reasoning_effort": "low",
+  "initial_code": "real-model",
+  "status": "succeeded",
+  "repair_count": 0,
+  "run_id": "f522383d1b32491287f72672b812b420",
+  "error": null,
+  "elapsed_seconds": 4.93,
+  "generated_code_executed": false
+}

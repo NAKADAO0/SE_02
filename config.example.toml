@@ -1,0 +1,7 @@
+base_url = "https://api.deepseek.com"
+model = "deepseek-flash"
+timeout = 60
+max_retries = 1
+retry_delay = 0.5
+max_repairs = 2
+output_dir = "runs"

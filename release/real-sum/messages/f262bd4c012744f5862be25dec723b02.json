@@ -1,0 +1,10 @@
+{
+  "message_id": "f262bd4c012744f5862be25dec723b02",
+  "run_id": "f522383d1b32491287f72672b812b420",
+  "sender": "reviewer",
+  "receiver": "workflow",
+  "kind": "review",
+  "payload_ref": "reviews/review_0.json",
+  "created_at": "2026-10-22T13:00:57.579627+00:00",
+  "schema_version": 1
+}

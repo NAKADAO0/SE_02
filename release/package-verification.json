@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "tests_run": 87,
+  "tests_passed": 85,
+  "tests_skipped": 2,
+  "failures": 0,
+  "extracted_fresh_venv_without_pip": true,
+  "cli_repair_pass_exit_code": 0,
+  "manifest_and_checksum_verified": true,
+  "repeated_build_identical": true
+}

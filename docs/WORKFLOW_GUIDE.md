@@ -2,7 +2,11 @@
 
 日期：2026-10-22；对应 M3/M4。目录：`E:\python_project\SE\SE_02`。
 
-本轮把原来的数据与基础设施接成可运行的三角色工作流：编码 → 审查 → 按需修复 → 复审。默认最多两次修复。全部角色可通过 Provider 接口调用模型；当前仓库只提供离线 Mock，没有接入真实模型。
+本模块提供三角色工作流：编码 → 审查 → 按需修复 → 复审，默认最多两次修复。现已接入真实 HTTP Provider 与通用 CLI，见 [CLI](CLI_GUIDE.md) 和 [HTTP 说明](HTTP_PROVIDER.md)。本文的旧脚本仍仅演示 Mock。
+
+## 当前版本补充
+
+M5/M6 已提供 HTTP 超时、重试和进度回调；下文 M3/M4 的“后续”描述保留为阶段设计背景，最新验收以 [最终报告](FINAL_ACCEPTANCE.md) 为准。逻辑节点事件 phase=node；传输尝试 phase=provider，不能将 provider 完成数等同于 Agent 调用数。
 
 ## 1. 安装与运行
 

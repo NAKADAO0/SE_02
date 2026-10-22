@@ -1,0 +1,5 @@
+{
+  "task_id": "live-acceptance",
+  "description": "实现 Python 纯函数 is_balanced(text)，只检查字符串中的 ()[]{} 括号是否正确配对和嵌套，忽略其他字符。空字符串返回 True，错误闭合或未闭合返回 False。不打印、不读写文件、不使用外部依赖。\n",
+  "language": "python"
+}

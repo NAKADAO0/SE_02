@@ -1,0 +1,8 @@
+{
+  "artifact_id": "is_balanced_v1",
+  "version": 1,
+  "source": "def is_balanced(text):\n    \"\"\"Return True if the brackets (), [], {} in text are correctly matched.\n\n    Only the six bracket characters are considered; all other characters\n    are ignored. An empty string (or a string with no brackets) is balanced.\n    A closing bracket that does not match the most recent unmatched opening\n    bracket, or any opening bracket left unmatched, makes the result False.\n    \"\"\"\n    if text is None:\n        return False\n\n    pairs = {')': '(', ']': '[', '}': '{'}\n    stack = []\n\n    for char in text:\n        if char in '([{':\n            stack.append(char)\n        elif char in pairs:\n            if not stack or stack[-1] != pairs[char]:\n                return False\n            stack.pop()\n\n    return not stack\n",
+  "explanation": "使用栈进行单次线性扫描：遇到开括号入栈，遇到闭括号时检查栈顶是否为对应的开括号，若不匹配或栈为空则立即返回 False；扫描结束后栈为空才返回 True。非括号字符被忽略，空字符串自然返回 True。函数为纯函数，不打印、不读写文件、无外部依赖。",
+  "language": "python",
+  "parent_version": null
+}

@@ -1,0 +1,8 @@
+{
+  "artifact_id": "unique_in_order",
+  "version": 1,
+  "source": "def unique_in_order(values):\n    \"\"\"Return a new list with duplicates removed, keeping first-occurrence order.\n\n    The input list is not modified. An empty input yields an empty list.\n    \"\"\"\n    seen = set()\n    result = []\n    for value in values:\n        if value not in seen:\n            seen.add(value)\n            result.append(value)\n    return result\n",
+  "explanation": "The function iterates over the input once, tracking already-seen integers in a set and appending each first occurrence to a fresh result list. This preserves first-occurrence order, runs in O(n) expected time, never mutates the input (a new list is always returned, even for empty input), and uses only built-in Python data structures with no I/O, printing, or external dependencies.",
+  "language": "python",
+  "parent_version": null
+}

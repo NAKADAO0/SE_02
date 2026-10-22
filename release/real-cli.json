@@ -1,0 +1,12 @@
+{
+  "kind": "external-cli-acceptance",
+  "date": "2026-10-22",
+  "base_url": "https://api.deepseek.com",
+  "requested_model": "deepseek-flash",
+  "status": "succeeded",
+  "run_id": "7e10f47c7bbe400bb5d7cc3bd96c6468",
+  "repair_count": 0,
+  "exit_code": 0,
+  "config": "config.example.toml",
+  "credentials_exported": false
+}

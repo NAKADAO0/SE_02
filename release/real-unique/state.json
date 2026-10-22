@@ -1,0 +1,22 @@
+{
+  "run_id": "4c6343ea52ee490290329b4fe89e88f4",
+  "status": "succeeded",
+  "current_node": "review_0",
+  "repair_count": 0,
+  "artifact_refs": [
+    "task.json",
+    "code/v1.py",
+    "code/v1.json",
+    "reviews/review_0.json"
+  ],
+  "message_refs": [
+    "messages/7454583d2d48439b83aa10df7d51aaa9.json",
+    "messages/1770a8cc184b4818ae99fda5d7f944f1.json",
+    "messages/fcbe2d9b370e4fcfa6c6add71bc37ad5.json",
+    "messages/99dd13f77a7a4e99b68c15abb5192537.json"
+  ],
+  "started_at": "2026-10-22T13:01:08.709533+00:00",
+  "ended_at": "2026-10-22T13:01:12.985667+00:00",
+  "error": null,
+  "schema_version": 1
+}

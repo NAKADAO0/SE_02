@@ -1,0 +1,8 @@
+{
+  "artifact_id": "injected-empty-sum-fixed",
+  "version": 2,
+  "source": "def total(values):\n    return sum(values)\n",
+  "explanation": "Returns the built-in sum of the integer list directly; sum already yields 0 for an empty iterable, so the empty-list boundary case now returns 0 as required. Pure function, no printing, file I/O, or external dependencies.",
+  "language": "python",
+  "parent_version": 1
+}

@@ -1,0 +1,13 @@
+{
+  "artifact_version": 1,
+  "verdict": "fail",
+  "issues": [
+    {
+      "issue_id": "empty-list-returns-none",
+      "severity": "blocker",
+      "description": "The function returns None when values is empty, but the task explicitly requires an empty list to return 0. The conditional expression `sum(values) if values else None` routes the empty-list boundary case to None instead of 0.",
+      "suggestion": "Return sum(values) directly (built-in sum already returns 0 for an empty iterable), e.g. `def total(values):\\n    return sum(values)`, removing the `else None` branch."
+    }
+  ],
+  "summary": "The implementation is correct for non-empty integer lists but fails the required empty-list boundary condition, returning None instead of 0; this is a spec violation and the artifact is rejected."
+}

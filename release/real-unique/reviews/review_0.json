@@ -1,0 +1,6 @@
+{
+  "artifact_version": 1,
+  "verdict": "pass",
+  "issues": [],
+  "summary": "The implementation correctly deduplicates integers while preserving first-occurrence order, returns a new list for both non-empty and empty inputs, does not mutate the input, and uses no printing, file I/O, or external dependencies. No blocking, major, or minor issues found."
+}

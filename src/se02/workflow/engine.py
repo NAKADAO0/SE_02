@@ -10,6 +10,7 @@ from se02.agents import Agent, AgentInput, CodingAgent, RepairAgent, ReviewAgent
 from se02.agents.base import validate_output
 from se02.domain import ExecutionEvent, Message, RunState, Task, ValidationError
 from se02.providers import Provider
+from se02.providers.telemetry import attempt_scope
 from se02.storage import ArtifactStore
 from .models import RunResult, WorkflowConfig
 
@@ -17,9 +18,12 @@ from .models import RunResult, WorkflowConfig
 class Workflow:
     """Reusable composition root; mutable state belongs to each run, not this object."""
 
-    def __init__(self, provider: Provider, *, root: str | Path = "runs", agents: Mapping[str, Agent] | None = None):
+    def __init__(self, provider: Provider, *, root: str | Path = "runs", agents: Mapping[str, Agent] | None = None, on_event=None):
         if not callable(getattr(provider, "complete", None)):
             raise ValidationError("provider must implement complete(request)")
+        if on_event is not None and not callable(on_event):
+            raise ValidationError("on_event must be callable")
+        self.on_event = on_event
         self.root = Path(root)
         self.agents = {"coder": CodingAgent(provider), "reviewer": ReviewAgent(provider), "fixer": RepairAgent(provider)}
         if agents is not None:
@@ -38,11 +42,12 @@ class Workflow:
             raise ValidationError("config must be WorkflowConfig")
         # Creation errors propagate: no run exists in which to record a failure.
         store = ArtifactStore.create(self.root)
-        return _Execution(store, dict(self.agents), config).run(task)
+        return _Execution(store, dict(self.agents), config, self.on_event).run(task)
 
 
 class _Execution:
-    def __init__(self, store: ArtifactStore, agents: Mapping[str, Agent], config: WorkflowConfig):
+    def __init__(self, store: ArtifactStore, agents: Mapping[str, Agent], config: WorkflowConfig, on_event=None):
+        self.on_event = on_event
         self.store, self.agents, self.config = store, agents, config
         self.state = RunState(run_id=store.run_id)
         self.artifacts = []
@@ -63,8 +68,18 @@ class _Execution:
                           receiver=receiver, kind=kind, payload_ref=ref)
         self.messages.append(self.store.append_message(message))
 
+    def _append_event(self, event):
+        self.store.append_event(event)
+        if self.on_event is not None:
+            self.on_event(event)
+
+    def _provider_event(self, event):
+        self._append_event(ExecutionEvent(run_id=self.store.run_id, node=self.node,
+            status=event.status, phase="provider", attempt=event.attempt,
+            elapsed_ms=event.elapsed_ms, detail=event.detail))
+
     def _event(self, status: str, *, version=None, detail=None):
-        self.store.append_event(ExecutionEvent(
+        self._append_event(ExecutionEvent(
             run_id=self.store.run_id, node=self.node, status=status,
             artifact_version=version, elapsed_ms=(perf_counter() - self.node_started) * 1000,
             detail=detail,
@@ -77,7 +92,8 @@ class _Execution:
             candidate = replace(candidate, repair_count=repair_count)
         self._save_state(candidate)
         self._event("running", version=context.code.version if context.code is not None else None)
-        output = self.agents[role].run(context)
+        with attempt_scope(self._provider_event):
+            output = self.agents[role].run(context)
         validate_output(role, output, context)
         ref, version = save(output)
         self._event("completed", version=version)
@@ -151,7 +167,7 @@ class _Execution:
                 self._message("reviewer", "workflow", "review", report_ref)
                 if report.verdict == "pass":
                     if index < self.config.max_repairs:
-                        self.store.append_event(ExecutionEvent(
+                        self._append_event(ExecutionEvent(
                             run_id=self.store.run_id, node=f"repair_{index + 1}", status="skipped",
                             artifact_version=artifact.version, detail="Review passed; no repair required",
                         ))

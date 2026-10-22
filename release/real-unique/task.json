@@ -1,0 +1,5 @@
+{
+  "task_id": "live-acceptance",
+  "description": "实现 Python 纯函数 unique_in_order(values)，接收整数列表，返回去重后的新列表，保留首次出现的顺序。空列表返回空列表，不修改输入。不打印、不读写文件、不使用外部依赖。\n",
+  "language": "python"
+}
