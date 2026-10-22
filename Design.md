@@ -1,10 +1,10 @@
 # 架构与接口设计
 
-版本：0.2；日期：2026-10-22；状态：领域契约、Mock Provider、产物仓储与事件日志已实现，其余为设计规划。真实用法见 [模块说明](docs/MODULE_GUIDE.md)。
+版本：0.3；日期：2026-10-22；状态：领域契约、Mock、仓储日志、三个 Agent 及有界编排已实现。通用 CLI 与 HTTP Provider 仍为规划。实际接口见 [基础模块说明](docs/MODULE_GUIDE.md) 和 [Agent/编排说明](docs/WORKFLOW_GUIDE.md)。
 
 ## 1. 分层架构
 
-采用 Python 命令行单进程架构，以显式状态机编排三个 Agent。先实现确定性 Mock，再实现兼容聊天补全协议的 HTTP Provider；具体服务、模型及依赖版本在接入时验证并锁定。
+采用 Python 单进程架构，以显式状态机编排三个 Agent。当前由 workflow_demo 示例驱动，通用 CLI 待实现。确定性 Mock 已提供；兼容聊天补全协议的 HTTP Provider 待接入，具体服务、模型及依赖版本届时验证并锁定。
 
 ```mermaid
 flowchart TD
@@ -65,7 +65,7 @@ Agent 不直接写文件，也不调用其他 Agent；Provider 不参与状态�
 
 ## 5. 状态与异常
 
-运行正常迁移为 pending → running → succeeded / needs_attention / failed；终态不允许再次变更。节点状态为 pending、running、completed、failed、skipped。审查直接通过时修复节点标记 skipped；多轮节点使用 review_0、repair_1、review_1 等执行 ID。
+运行正常迁移为 pending → running → succeeded / needs_attention / failed；启动前错误也允许 pending → failed，终态不允许再次变更。节点状态为 pending、running、completed、failed、skipped。审查通过且存在下一允许修复轮次时，记录该轮 skipped；多轮节点使用 review_0、repair_1、review_1 等执行 ID。默认修复上限两轮，可用 WorkflowConfig 降至 0 或 1。
 
 节点完成前先校验响应结构和版本关系。磁盘失败时不得宣告成功；若无法保存 failed 状态，CLI 输出错误到标准错误流并返回非零退出码。首期不提供崩溃后自动续跑，已有文件用于排查，用户重新发起一次运行。
 

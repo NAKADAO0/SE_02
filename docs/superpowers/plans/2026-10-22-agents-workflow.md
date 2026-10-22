@@ -20,9 +20,9 @@
 
 接口：`AgentInput(task, code=None, review=None)`；`CodingAgent(provider).run(input) -> CodeArtifact`；ReviewAgent 返回 ReviewReport；RepairAgent 返回 FixResult。`Agent` Protocol 定义 role 和 run，可被外部角色实现替换。
 
-- [ ] 测试先行：独立提示、请求上下文、v1 约束、畸形 JSON、重复字段、NaN、版本错配及修复映射错误。
-- [ ] 观察新测试因缺少 agents 包失败，再实现严格解析和角色校验。
-- [ ] 验证测试通过并提交独立 Agent 模块。
+- [x] 测试先行：独立提示、请求上下文、v1 约束、畸形 JSON、重复字段、NaN、版本错配及修复映射错误。
+- [x] 观察新测试因缺少 agents 包失败，再实现严格解析和角色校验。
+- [x] 验证测试通过并提交独立 Agent 模块。
 
 ## Task 2：编排引擎
 
@@ -30,16 +30,17 @@
 
 接口：`Workflow(provider, root="runs", agents=None).run(task, config=None) -> RunResult`；WorkflowConfig.max_repairs 默认 2；RunResult 含终态、路径、最终产物引用、持久化错误及 exit_code。
 
-- [ ] 测试先行：直接通过、修复通过、第二轮通过、持续拒绝、0/1 上限、调用异常、畸形/错配响应、独立运行及角色替换。
-- [ ] 注入节点完成日志、代码保存、终态保存故障，确认 failed 和诊断信息。
-- [ ] 观察新测试因缺少 workflow 包失败，再实现顺序编排与统一异常收口。
-- [ ] 检查真实磁盘文件和节点顺序，验证全部测试并提交引擎。
+- [x] 测试先行：直接通过、修复通过、第二轮通过、持续拒绝、0/1 上限、调用异常、畸形/错配响应、独立运行及角色替换。
+- [x] 注入节点完成日志、代码保存、终态保存故障，确认 failed 和诊断信息。
+- [x] 观察新测试因缺少 workflow 包失败，再实现顺序编排与统一异常收口。
+- [x] 检查真实磁盘文件和节点顺序，验证全部测试并提交引擎。
 
 ## Task 3：演示、说明、审查与交付
 
 文件：`examples/workflow_demo.py`、`tests/test_workflow_example.py`、`docs/WORKFLOW_GUIDE.md`，更新 README、Design、开发流程、验收及实现报告。
 
-- [ ] 先测试四场景脚本的退出码和终态，再实现示例；示例仅暴露离线样例选择。
-- [ ] 写明 Agent/Workflow 接口、消息关系、节点状态、计数语义、失败落盘和扩展方法。
-- [ ] 运行全部测试、四种演示、文档代码、编译及 diff 检查；完成独立审查和回归。
-- [ ] 按用户已授权的 Git 流程集成 main、推送并核对本地与远程提交。
+- [x] 先测试四场景脚本的退出码和终态，再实现示例；示例仅暴露离线样例选择。
+- [x] 写明 Agent/Workflow 接口、消息关系、节点状态、计数语义、失败落盘和扩展方法。
+- [x] 运行全部测试、四种演示、文档代码、编译及 diff 检查；完成独立审查和回归。
+
+Git 交付按用户已授权的流程集成 main、推送并核对本地与远程提交；最终结果以仓库提交历史为准。

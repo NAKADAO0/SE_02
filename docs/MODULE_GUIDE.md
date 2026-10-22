@@ -6,7 +6,7 @@
 
 M1 提供严格、不可变且可 JSON 编解码的数据契约；M2 提供无网络 Mock 模型、独立运行目录、版本化产物仓储、结构化消息和执行事件。模块之间没有模型 SDK 依赖。
 
-三个 Agent、自动流程调度、修复次数调度、真实模型调用、调用超时和重试尚未实现。ProviderError 已预留 retryable 标识；本轮 Mock 的调用失败不可重试。RunState 中修复计数只能是 0—2，何时增加由后续编排器负责。
+三个 Agent 和有界编排已在 M3/M4 实现，见 [工作流说明](WORKFLOW_GUIDE.md)。本文聚焦 M1/M2 模块；真实模型调用、调用超时和重试尚未实现。ProviderError 已预留 retryable 标识；Mock 的调用失败不可重试。RunState 中修复计数只能是 0—2，何时增加由编排器负责。
 
 ## 2. 安装和验证
 
@@ -80,7 +80,7 @@ assert failed.ended_at is not None
 
 允许 pending → running/failed；running → succeeded/failed/needs_attention。pending → failed 用于启动前错误。终态不能再次迁移，running 必须有开始时间而无结束时间，终态必须有结束时间，failed 必须有非空错误。成功与需人工处理还要求存在开始时间；结束时间不得早于开始时间。
 
-领域层只验证状态结构；审查通过、产物保存完成或达到修复上限等业务证据由后续编排器决定，本轮不把合法状态对象等同于工作流已完成。
+领域层只验证状态结构；审查通过、产物保存完成或达到修复上限等业务证据由编排器决定，不能把合法状态对象等同于工作流已完成。
 
 ## 5. Mock 模型与 Provider 接口
 
@@ -177,4 +177,4 @@ runs/<run_id>/
 
 ## 8. 后续接入点
 
-新增 Agent 负责提示构造与解析；直接使用 ProviderRequest 和上述契约，不写磁盘。新增编排器负责角色顺序、修复上限、终态业务判断、消息关联和异常落盘；使用 ArtifactStore 保存所有结果。真实 Provider 实现相同 complete 方法，在自己的层内处理网络超时和重试，不修改领域协议。
+现有 Agent 负责提示构造与解析，直接使用 ProviderRequest 和上述契约，不写磁盘。现有编排器负责角色顺序、修复上限、终态业务判断、消息关联和异常落盘，使用 ArtifactStore 保存所有结果。后续真实 Provider 实现相同 complete 方法，在自己的层内处理网络超时和重试，不修改领域协议。

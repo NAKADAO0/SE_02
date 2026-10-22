@@ -1,6 +1,6 @@
 # 模块化开发流程
 
-日期：2026-10-22；范围：文档基线到 MVP 交付。M1 领域契约、M2a Mock、M2b 仓储已实现；M3—M7 尚未实施。具体测试证据见 [实现报告](IMPLEMENTATION_REPORT.md)。
+日期：2026-10-22；范围：文档基线到 MVP 交付。M1—M4 已实现：领域契约、Mock、仓储、三个角色与有界编排；M5—M7 尚未交付。具体测试证据见 [M1/M2 报告](IMPLEMENTATION_REPORT.md) 和 [M3/M4 报告](WORKFLOW_REPORT.md)。
 
 ## 1. 开发原则与依赖顺序
 
@@ -53,7 +53,7 @@ SE_02/
 └── runs/                    # 本地产物，后续加入忽略规则
 ```
 
-当前已创建 pyproject.toml、domain、providers、storage、tests 和 examples；agents、workflow、cli.py 尚未创建。runs 为本地示例产物，不提交 Git。
+当前已创建 pyproject.toml、domain、providers、storage、agents、workflow、tests 和 examples；cli.py 尚未创建。runs 为本地示例产物，不提交 Git。
 
 ## 5. 按截止时间倒排
 
@@ -78,4 +78,4 @@ SE_02/
 
 ## 7. 当前评审重点
 
-用户已授权本轮实现 M1—M2，现已提供可独立使用的模块。后续按基线进入 M3—M4：三个角色与有界编排。现有基础设施示例不是完整工作流。
+用户已授权实现 M1—M4，现已具备离线完整三角色工作流，使用 examples/workflow_demo.py 演示；examples/infrastructure_demo.py 保留为基础模块检查点示例。后续进入 M5 通用 CLI 和 M6 真实模型接入。
