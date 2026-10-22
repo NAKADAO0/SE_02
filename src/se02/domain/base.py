@@ -17,12 +17,12 @@ def utc_now() -> datetime:
 
 
 def identifier(value: str, name: str) -> None:
-    if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", value):
+    if not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", value):
         raise ValidationError(f"{name}: expected a safe identifier of 1..128 ASCII characters")
 
 
 def text(value: str, name: str) -> None:
-    if not value.strip():
+    if not isinstance(value, str) or not value.strip():
         raise ValidationError(f"{name}: must not be blank")
 
 
