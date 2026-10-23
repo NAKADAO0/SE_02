@@ -85,6 +85,19 @@ class PackagingTests(unittest.TestCase):
             self.assertIn('docs/screenshots/runtime.png', archive.namelist())
             self.assertNotIn('examples/private-image.png', archive.namelist())
 
+    def test_web_assets_only_from_package_static_directory(self):
+        for path in ('src/se02/web/static/index.html', 'src/se02/web/static/styles.css', 'src/se02/web/static/app.js'):
+            self.write(path, 'web fixture')
+        self.write('docs/unrelated.html', 'not a package resource')
+        self.write('examples/unrelated.js', 'not a package resource')
+        self.assertEqual(self.build().returncode, 0)
+        with zipfile.ZipFile(self.output) as archive:
+            self.assertIn('src/se02/web/static/index.html', archive.namelist())
+            self.assertIn('src/se02/web/static/styles.css', archive.namelist())
+            self.assertIn('src/se02/web/static/app.js', archive.namelist())
+            self.assertNotIn('docs/unrelated.html', archive.namelist())
+            self.assertNotIn('examples/unrelated.js', archive.namelist())
+
     @unittest.skipUnless(os.name == "nt", "Windows junction boundary")
     def test_rejects_external_directory_junction(self):
         outside = Path(self.temp.name) / "outside"

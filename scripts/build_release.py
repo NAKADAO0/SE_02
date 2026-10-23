@@ -31,6 +31,8 @@ def allowed(relative: Path) -> bool:
     return (relative.as_posix() in ROOT_FILES
             or relative.as_posix() == "scripts/build_release.py"
             or (len(parts) >= 3 and parts[:2] == ("docs", "screenshots") and relative.suffix.lower() == ".png")
+            or (len(parts) >= 5 and parts[:4] == ("src", "se02", "web", "static")
+                and relative.suffix.lower() in {".html", ".css", ".js"})
             or (len(parts) > 1 and parts[0] in TREES and relative.suffix.lower() in EXTENSIONS))
 
 

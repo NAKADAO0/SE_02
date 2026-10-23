@@ -1,11 +1,13 @@
 {
-  "version": "0.2.0",
-  "tests_run": 88,
-  "tests_passed": 86,
+  "version": "0.3.0",
+  "tests_run": 102,
+  "tests_passed": 100,
   "tests_skipped": 2,
   "failures": 0,
   "extracted_fresh_venv_without_pip": true,
   "cli_repair_pass_exit_code": 0,
+  "frontend_assets_in_source_and_wheel": true,
+  "browser_desktop_and_mobile_passed": true,
   "manifest_and_checksum_verified": true,
   "repeated_build_identical": true
 }

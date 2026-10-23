@@ -4,17 +4,34 @@
 
 **当前阶段：M1—M7 已交付。** 支持任务文件与配置、三个 Agent、有界修复编排、真实 HTTP 模型、进度与结果展示。已实际连接 DeepSeek V4.1 Flash 完成编码、审查、修复及 CLI 验收，提供可独立解压使用的源码包。
 
-## 运行截图
+## 简洁前端工作区
 
-截图采集于 2026-10-23。先实际执行 CLI 的 repair_pass 演示，再把该进程输出、state.json、events.jsonl 和最终代码展示为只读运行报告。这是 **Mock 现场运行记录**，不是交互式 Web 产品界面；真实 DeepSeek 证据见 release 与最终验收报告。
+已按第二次作业的界面设计实现交互式前端：暖白背景、绿色操作按钮、左侧任务历史、中间需求与协作进度、右侧任务产物。前端直接调用本项目工作流，无需 Node.js 或前端构建。
 
-一次修复后通过的运行总览：
+安装后启动：
 
-![实际 CLI 运行报告：节点、修复次数和最终代码](docs/screenshots/runtime-overview.png)
+```powershell
+.\.venv\Scripts\python.exe -m se02.web --port 8763 --config config.example.toml
+```
 
-同一次运行的完整 CLI 输出、源码和审查判定：
+浏览器打开 http://127.0.0.1:8763 。终端按 Ctrl+C 停止。
 
-![同一次运行的 CLI 输出与审查结果](docs/screenshots/runtime-cli.png)
+1. 初次使用选择“离线固定样例”，点击“开始协作”，可观察编码 → 审查 → 修复 → 复审。
+2. 右侧切换代码版本、差异、审查和日志；审查通过后可复制或下载最终代码。
+3. 左侧查看历史或新建任务。小屏幕通过顶部按钮切换历史和产物面板。
+4. 运行任意需求需按下文配置真实模型，在服务端设置环境变量后重启服务，选择“真实模型”。密钥不输入浏览器；没有配置时该模式不可运行。
+
+Mock 只演示固定求和需求；生成代码只保存、不自动执行。历史会持久化，重启前未完成的任务显示失败，不自动恢复。详见 [Web 使用与接口说明](docs/WEB_UI.md)。
+
+截图采集于 2026-10-23，显示实际运行的离线样例：
+
+![简洁工作区：需求、Agent 进度与代码产物](docs/screenshots/workspace-ui.png)
+
+新建任务页面：
+
+![工作区欢迎页与需求输入](docs/screenshots/workspace-welcome.png)
+
+原 CLI 只读报告仍可按下方步骤生成，与交互式工作区分别使用。
 
 ## 第一次使用：安装、运行、查看结果
 
@@ -93,7 +110,7 @@ flowchart LR
 - 本地工作目录：`E:\python_project\SE\SE_02`
 - 远程仓库：https://github.com/NAKADAO0/SE_02
 - 所有新增源代码、测试和文档均放在本仓库中。
-- 相邻目录的旧作业仅作为背景参考；尚未复制或验证其中模块。
+- 相邻目录第二次作业仅作为界面风格参考；本工作区复用 SE_02 的领域、Agent 与编排模块。
 
 ## 文档导航
 
@@ -108,6 +125,7 @@ flowchart LR
 | [M1/M2 实现报告](docs/IMPLEMENTATION_REPORT.md) | 领域契约和基础设施的历史验证证据 |
 | [Agent 与编排说明](docs/WORKFLOW_GUIDE.md) | 角色接口、执行顺序、分支、两轮修复、失败处理与扩展 |
 | [M3/M4 验证报告](docs/WORKFLOW_REPORT.md) | 本轮新增功能、55 项测试及后续范围 |
+| [Web 工作区](docs/WEB_UI.md) | 启动、操作、历史与本地 HTTP 接口 |
 | [CLI 使用说明](docs/CLI_GUIDE.md) | 任务文件、配置优先级、进度、结果和退出码 |
 | [HTTP 适配说明](docs/HTTP_PROVIDER.md) | 协议、超时、重试、错误分类和凭据边界 |
 | [最终验收报告](docs/FINAL_ACCEPTANCE.md) | 88 项测试、真实服务和交付证据 |
@@ -147,7 +165,7 @@ $env:SE02_API_KEY = [System.Net.NetworkCredential]::new('', $credential).Passwor
 
 源码包：[SE_02-source.zip](https://github.com/NAKADAO0/SE_02/blob/main/deliverables/SE_02-source.zip)，校验文件：[SHA256](https://github.com/NAKADAO0/SE_02/blob/main/deliverables/SE_02-source.zip.sha256)。本地对应 deliverables 目录。包内含源码、测试、全部说明、样例和脱敏真实验收证据，不含密钥、虚拟环境和私密 runs。
 
-本机重建：`python scripts/build_release.py --output deliverables/SE_02-source.zip`。最新回归为 88 项测试、86 通过、2 项因 Windows 符号链接权限跳过；真实模型三类任务及修复路径通过。
+本机重建：`python scripts/build_release.py --output deliverables/SE_02-source.zip`。历史 CLI 交付回归为 88 项测试、86 通过、2 项因 Windows 符号链接权限跳过；当前 UI 回归见 [UI 验证记录](docs/UI_VERIFICATION.md)；真实模型三类任务及修复路径通过。
 
 ## 作业背景
 

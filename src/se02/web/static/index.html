@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SE_02 · 协作工作区</title><link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script></head>
+<body>
+<div class="workspace">
+  <aside id="sidebar" class="sidebar" aria-label="任务侧栏">
+    <div class="brand"><span class="brand-mark">〈/〉</span><div>Code Review<small>AGENT WORKSPACE</small></div><button id="sidebar-close" class="mobile-only plain" aria-label="关闭侧栏">×</button></div>
+    <button id="new-task" class="new-task">＋ 新建任务</button>
+    <div class="section-label">工作区</div><div class="project"><span>▧</span><div>SE_02<small>三 Agent 协作</small></div><span class="dot"></span></div>
+    <div class="history-heading"><span class="section-label">最近任务</span><button id="refresh-history" class="plain" aria-label="刷新任务历史">↻</button></div>
+    <nav id="history" aria-label="任务历史"><p class="muted">还没有任务，从一个需求开始。</p></nav>
+    <div class="sidebar-bottom"><span class="dot"></span><span id="connection-text">正在连接本地服务…</span><small>本地工作区 · 密钥由服务端管理</small></div>
+  </aside>
+  <main>
+    <header class="topbar"><div class="breadcrumbs"><button id="sidebar-open" class="plain mobile-only" aria-label="打开侧栏" aria-expanded="false" aria-controls="sidebar">☰</button><span>SE_02</span><span class="muted">/</span><strong id="task-title">新建任务</strong></div><button id="toggle-inspector" class="panel-toggle" aria-controls="inspector" aria-expanded="true">任务产物 ⇥</button></header>
+    <div class="work-area">
+      <section class="conversation" aria-label="协作流程">
+        <div id="conversation-scroll" class="conversation-scroll">
+          <section id="welcome" class="welcome"><div class="welcome-mark">〈/〉</div><div class="eyebrow">THREE AGENTS. ONE WORKFLOW.</div><h1>让代码，经过一次协作。</h1><p>从一个清楚的需求开始。<br>编码、审查与修复 Agent 将一起完成它。</p>
+            <div class="suggestions"><button data-example="unique"><span class="suggestion-icon">⌘</span><strong>编写稳定去重函数</strong><span>保留首次出现的顺序</span><b>›</b></button><button data-example="brackets"><span class="suggestion-icon">{ }</span><strong>检查括号是否匹配</strong><span>覆盖嵌套与空字符串</span><b>›</b></button><button data-example="demo"><span class="suggestion-icon">▷</span><strong>体验离线完整流程</strong><span>固定求和样例 · 无需密钥</span><b>›</b></button></div>
+          </section>
+          <section id="task-content" class="task-content" hidden><div class="task-heading"><span class="eyebrow">WORKFLOW SESSION</span><span id="run-status" class="status-badge" role="status"></span></div><h1 id="run-heading"></h1><div id="user-message" class="user-message"></div><div id="agent-timeline" class="agent-timeline"></div><div id="result-message" class="result-message" role="status"></div></section>
+        </div>
+        <div class="composer-area"><div id="error-banner" role="alert" hidden></div><form id="composer" class="composer"><label for="requirement" class="sr-only">代码需求</label><textarea id="requirement" rows="3" maxlength="10000" placeholder="描述你希望实现的 Python 代码…"></textarea><div class="composer-controls"><div class="composer-options"><label>模式 <select id="mode" aria-label="运行模式"><option value="http">真实模型</option><option value="mock">离线固定样例</option></select></label><label>修复 <select id="max-repairs" aria-label="最多修复次数"><option value="0">0 次</option><option value="1">1 次</option><option value="2" selected>2 次</option></select></label></div><button id="send-task" type="submit" aria-label="启动任务">开始协作 ↑</button></div></form><p id="mode-note" class="mode-note"></p><div class="composer-footnote"><span>生成代码不会自动执行。</span><span>Ctrl + Enter 运行</span></div></div>
+      </section>
+      <aside id="inspector" class="inspector" aria-label="任务产物"><div class="inspector-heading"><strong>任务产物</strong><span class="file-badge">PYTHON</span></div><div class="inspector-tabs" role="tablist" aria-label="产物类型"><button id="tab-code" data-tab="code" role="tab" aria-selected="true" aria-controls="artifact-content">代码</button><button id="tab-diff" data-tab="diff" role="tab" aria-selected="false" aria-controls="artifact-content">差异</button><button id="tab-review" data-tab="review" role="tab" aria-selected="false" aria-controls="artifact-content">审查</button><button id="tab-logs" data-tab="logs" role="tab" aria-selected="false" aria-controls="artifact-content">日志</button></div><div class="artifact-toolbar"><select id="version-select" aria-label="代码版本" disabled><option>暂无版本</option></select><button id="copy-code" class="plain" disabled>复制代码</button><button id="download-code" class="download" disabled>下载</button></div><div id="artifact-content" class="artifact-content" role="tabpanel" aria-labelledby="tab-code" tabindex="0"><div class="artifact-empty"><div>〈/〉</div><h3>代码将在这里呈现</h3><p>查看每次编码与修复的版本，<br>以及 Agent 的审查意见。</p><pre># your next idea
+# starts here.</pre></div></div><div class="inspector-footer"><span class="dot"></span>编码 → 审查 → 修复 → 复审</div></aside>
+    </div><footer class="statusbar"><span id="model-label">SE_02 · 本地工作区</span><span>Python · 三 Agent 协作</span></footer>
+  </main>
+</div><button id="sidebar-backdrop" class="backdrop" aria-label="关闭任务侧栏" hidden></button><div id="toast" role="status" hidden></div>
+</body></html>
