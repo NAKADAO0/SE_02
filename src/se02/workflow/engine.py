@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from se02.agents import Agent, AgentInput, CodingAgent, RepairAgent, ReviewAgent
 from se02.agents.base import validate_output
-from se02.domain import ExecutionEvent, Message, RunState, Task, ValidationError
+from se02.domain import CodeArtifact, ExecutionEvent, Message, RunState, Task, ValidationError
 from se02.providers import Provider
 from se02.providers.telemetry import attempt_scope
 from se02.storage import ArtifactStore
@@ -34,15 +34,17 @@ class Workflow:
                     raise ValidationError("registered agent must implement run and match a known role")
                 self.agents[role] = agent
 
-    def run(self, task: Task, config: WorkflowConfig | None = None) -> RunResult:
+    def run(self, task: Task, config: WorkflowConfig | None = None, *, initial_code: CodeArtifact | None = None) -> RunResult:
         if not isinstance(task, Task):
             raise ValidationError("task must be a Task")
         config = WorkflowConfig() if config is None else config
         if not isinstance(config, WorkflowConfig):
             raise ValidationError("config must be WorkflowConfig")
+        if initial_code is not None and (not isinstance(initial_code, CodeArtifact) or initial_code.version != 1):
+            raise ValidationError("initial_code must be a version 1 CodeArtifact")
         # Creation errors propagate: no run exists in which to record a failure.
         store = ArtifactStore.create(self.root)
-        return _Execution(store, dict(self.agents), config, self.on_event).run(task)
+        return _Execution(store, dict(self.agents), config, self.on_event).run(task, initial_code)
 
 
 class _Execution:
@@ -145,16 +147,24 @@ class _Execution:
         self.state = failed  # Return the failure even if disk persistence was impossible.
         return self._result(persistence_errors=persistence_errors)
 
-    def run(self, task: Task) -> RunResult:
+    def run(self, task: Task, initial_code: CodeArtifact | None = None) -> RunResult:
         try:
             task_ref = self.store.save_task(task)
             self.artifacts.append(task_ref)
             self._save_state(self.state)
-            self._save_state(self.state.transition("running", current_node="coder"))
-            self.node = "coder"
-            self._message("user", "coder", "task", task_ref)
-            artifact, code_ref = self._node("coder", "coder", AgentInput(task=task), self._save_code)
-            code_sender = "coder"
+            self.node = "upload" if initial_code is not None else "coder"
+            self._save_state(self.state.transition("running", current_node=self.node))
+            if initial_code is not None:
+                self._event("running", version=1)
+                artifact = initial_code
+                code_ref, _ = self._save_code(artifact)
+                self._event("completed", version=1, detail="Uploaded source preserved as version 1")
+                self._save_state(self.state)
+                code_sender = "user"
+            else:
+                self._message("user", "coder", "task", task_ref)
+                artifact, code_ref = self._node("coder", "coder", AgentInput(task=task), self._save_code)
+                code_sender = "coder"
 
             for index in range(self.config.max_repairs + 1):
                 self.node = f"review_{index}"

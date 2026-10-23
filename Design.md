@@ -80,6 +80,11 @@ Agent 不直接写文件，也不调用其他 Agent；Provider 不参与状态�
 
 ## 8. 本地 Web 工作区
 
-浏览器使用原生 HTML/CSS/JavaScript，三栏分别承担历史、任务和产物查看；窄屏通过抽屉切换。Python 标准库 HTTP 服务提供同源 JSON 接口，单个后台工作线程调用现有 Workflow。网页轮询实际状态与产物，不另外实现 Agent 逻辑。
+浏览器使用原生 HTML/CSS/JavaScript，三栏分别承担上传历史、文件上传与进度、产物查看；窄屏通过抽屉切换。Python 标准库 HTTP 服务提供同源 JSON 接口，单个后台工作线程调用现有 Workflow。网页轮询实际状态与产物，不另外实现 Agent 逻辑。
 
 UI 运行有独立索引与产物目录，只展示自身登记的运行；保留历史但不支持断点恢复。真实模型配置保留在服务端，浏览器仅选择模式与修复预算。接口只绑定本机，并校验 Host、Origin、请求头与请求体。前端动态文本通过 textContent 写入，生成源码不执行。详细协议见 [WEB_UI.md](docs/WEB_UI.md)。
+
+
+### 文件上传入口（0.3.1）
+
+Web仅接收Python源码文件，将UTF-8文本构造为v1 CodeArtifact，通过Workflow.run(initial_code=...)直接进入审查；CLI仍保留原来的任务生成流程。上传入口不调用CodingAgent覆盖原文。两个入口共用审查/修复Agent、模型适配器、配置加载及有界循环。文件名只用于展示，保存路径由服务端生成；浏览器不配置API和模型。

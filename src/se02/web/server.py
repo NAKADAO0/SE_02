@@ -6,7 +6,8 @@ import re
 from urllib.parse import urlsplit
 from .manager import ApiError, ID, JobManager
 
-MAX_BODY = 64 * 1024
+# A 32 KiB source file can grow sixfold through JSON escaping.
+MAX_BODY = 256 * 1024
 
 class LocalServer(ThreadingHTTPServer):
     daemon_threads = True
@@ -68,7 +69,7 @@ def make_server(host='127.0.0.1', port=8763, manager=None, *, static_dir=None):
                         raise ApiError(400,'A valid Content-Length is required')
                     length = int(lengths[0])
                     if length>MAX_BODY:
-                        raise ApiError(413,'Request body exceeds 64 KiB')
+                        raise ApiError(413,'Request body exceeds 256 KiB')
                     self.connection.settimeout(5)
                     raw = self.rfile.read(length)
                     if len(raw)!=length:

@@ -1,7 +1,7 @@
 "use strict";
 const $ = id => document.getElementById(id);
 const labels = {pending:"等待执行",running:"协作中",succeeded:"审查通过",failed:"执行失败",needs_attention:"需要人工处理",completed:"已完成",skipped:"已跳过"};
-const roles = {code:"编码 Agent",coder:"编码 Agent",coding:"编码 Agent",review:"审查 Agent",repair:"修复 Agent",fix:"修复 Agent"};
+const roles = {upload:"文件上传",code:"编码 Agent",coder:"编码 Agent",coding:"编码 Agent",review:"审查 Agent",repair:"修复 Agent",fix:"修复 Agent"};
 function timelineRole(node) {
   const review = /^review_(\d+)$/.exec(node);
   if (review) return Number(review[1]) === 0 ? "审查 Agent · 第1次" : `复审 Agent · 第${Number(review[1])}轮`;
@@ -9,11 +9,9 @@ function timelineRole(node) {
   if (repair) return `修复 Agent · 第${Number(repair[1])}轮`;
   return roles[node] || node;
 }
-const fixedTask = "实现 total(values)，接收数值列表并返回总和；空列表返回 0。";
-const examples = {unique:"实现 Python 函数 unique(values)，稳定去重并保留元素首次出现的顺序，空列表返回空列表。",brackets:"实现 Python 函数 is_balanced(text)，检查圆括号、方括号和花括号是否正确匹配，支持嵌套，忽略其他字符，空字符串返回 True。"};
 let settings = null, current = null, selectedId = null, selectedTab = "code";
 let sequence = 0, historySequence = 0, pollTimer = null, controller = null, submitting = false, toastTimer = null;
-let httpDraft = "", chosenVersion = null;
+let chosenVersion = null;
 const active = state => state && ["pending","running"].includes(state.status);
 function el(tag, className = "", text = "") {const node = document.createElement(tag); node.className = className; node.textContent = text; return node;}
 function showError(message) {$("error-banner").textContent = message; $("error-banner").hidden = !message;}
@@ -29,36 +27,33 @@ function invalidateSelection() {sequence++; clearTimeout(pollTimer); controller?
 function closeSidebar() {$("sidebar").classList.remove("visible"); $("sidebar-backdrop").hidden = true; $("sidebar-open").setAttribute("aria-expanded","false");}
 function updateControls() {
   const busy = submitting || active(current);
-  $("mode").disabled = busy || !settings;
   $("max-repairs").disabled = busy || !settings;
-  $("requirement").disabled = busy || !settings;
-  $("send-task").disabled = busy || !settings || ($("mode").value === "http" && !settings.live_available);
-  $("send-task").textContent = submitting ? "正在创建…" : active(current) ? "协作进行中…" : "开始协作 ↑";
+  $("source-file").disabled = busy || !settings;
+  $("send-task").disabled = busy || !settings?.live_available || !$("source-file").files.length;
+  $("send-task").textContent = submitting ? "正在上传…" : active(current) ? "正在审查…" : "上传并审查 ↑";
   $("composer").setAttribute("aria-busy",String(Boolean(busy)));
 }
 function setMode() {
-  const mock = $("mode").value === "mock";
-  $("requirement").readOnly = mock;
-  if (mock) $("requirement").value = fixedTask;
-  $("mode-note").textContent = mock ? "离线固定求和样例 · 输入只读 · 演示编码、审查、修复与复审。" : settings?.live_available ? "真实模型 · 点击开始后会调用已配置的服务，可能产生费用。" : "真实模型尚未配置。请在服务端配置模型与 API 密钥后重启，或选择离线固定样例。";
+  $("mode-note").textContent = settings?.live_available ? `使用 CLI 配置：${settings.model}。上传后发送至模型服务进行审查。` : `CLI 模型 ${settings?.model || "未配置"} 尚未就绪。请在服务端设置 SE02_API_KEY 后重启，页面不会切换为 Mock。`;
   updateControls();
 }
 function selectVersion() {const versions = current?.versions || []; return versions.find(v => String(v.version) === String(chosenVersion)) || versions[versions.length - 1];}
 function newTask() {
   invalidateSelection(); selectedId = null; current = null; chosenVersion = null; selectedTab = "code";
   $("welcome").hidden = false; $("task-content").hidden = true; $("task-title").textContent = "新建任务";
-  $("mode").value = settings?.live_available ? "http" : "mock"; $("requirement").value = httpDraft;
+  $("source-file").value = ""; $("file-info").textContent = "尚未选择文件 · UTF-8 · 最大 32 KiB";
   showError(""); setMode(); renderArtifact(); renderTabSelection(); closeSidebar();
   document.querySelectorAll(".history-item").forEach(button => button.setAttribute("aria-current","false"));
-  $("requirement").focus();
+  $("source-file").focus();
 }
 async function refreshHistory() {
   const own = ++historySequence;
   try {
     const data = await api("/api/runs"); if (own !== historySequence) return;
     $("history").replaceChildren();
-    if (!data.runs?.length) $("history").append(el("p","muted","还没有任务，从一个需求开始。"));
-    for (const run of data.runs || []) {
+    const uploads = (data.runs || []).filter(run => run.filename);
+    if (!uploads.length) $("history").append(el("p","muted","还没有记录，上传一个 Python 文件开始。"));
+    for (const run of uploads) {
       const button = el("button","history-item"); button.type = "button"; button.dataset.runId = run.id;
       button.setAttribute("aria-current",String(run.id === selectedId));
       const detail = el("small"); detail.append(el("span","",labels[run.status] || run.status),el("span","",run.mode === "mock" ? "离线样例" : "真实模型"));
@@ -95,7 +90,6 @@ function renderRun() {
   $("task-title").textContent = state.title || "协作任务"; $("run-heading").textContent = state.title || "协作任务";
   $("user-message").textContent = typeof state.task === "string" ? state.task : JSON.stringify(state.task,null,2);
   $("run-status").textContent = labels[state.status] || state.status;
-  $("mode").value = state.mode; $("requirement").value = state.mode === "mock" ? fixedTask : (typeof state.task === "string" ? state.task : "");
   setMode();
   const timeline = $("agent-timeline"); timeline.replaceChildren();
   const stages = [];
@@ -133,7 +127,7 @@ function renderArtifact() {
   target.replaceChildren();
   if (!current) {const empty = el("div","artifact-empty"); empty.append(el("div","","〈/〉"),el("h3","","代码将在这里呈现"),el("p","","查看每次编码与修复的版本，\n以及 Agent 的审查意见。"),el("pre","","# your next idea\n# starts here.")); target.append(empty); return;}
   if (selectedTab === "code") {
-    if (!version) {target.append(el("div","tab-empty","等待编码 Agent 生成初始版本…")); return;}
+    if (!version) {target.append(el("div","tab-empty","等待上传文件保存为初始版本…")); return;}
     const view = el("div","code-view"); String(version.source).split("\n").forEach((line,index) => {const row = el("div","code-line"); row.append(el("span","line-number",String(index+1).padStart(2,"0")),el("span","line-content",line || " ")); view.append(row);}); target.append(view);
   } else if (selectedTab === "diff") {
     if (!current.diff) {target.append(el("div","tab-empty","首版与最新版暂无差异。\n修复后的改动将在这里显示。")); return;}
@@ -149,25 +143,22 @@ function renderArtifact() {
 }
 $("composer").onsubmit = async event => {
   event.preventDefault(); if (submitting || active(current) || !settings) return;
-  const mode = $("mode").value, task = mode === "mock" ? fixedTask : $("requirement").value.trim();
-  if (mode === "http" && !settings.live_available) {showError("真实模型尚未配置，请选择离线固定样例。"); return;}
-  if (!task) {showError("请先描述代码需求。"); $("requirement").focus(); return;}
-  if (mode === "http") httpDraft = task;
+  if (!settings.live_available) {showError("请在服务端配置 CLI 使用的 API 密钥后重启服务。"); return;}
+  const file = $("source-file").files[0];
+  if (!file || !/\.py$/i.test(file.name) || file.size > 32768 || !file.size) {showError("请选择非空的 .py 文件，最大 32 KiB。"); return;}
   const own = sequence; submitting = true; updateControls(); showError("");
   try {
-    const data = await api("/api/runs",{method:"POST",headers:{"Content-Type":"application/json","X-SE02-Request":"1"},body:JSON.stringify({task,mode,scenario:"repair_pass",max_repairs:Number($("max-repairs").value)})});
+    let source;
+    try {source = new TextDecoder("utf-8",{fatal:true}).decode(await file.arrayBuffer());}
+    catch {throw new Error("文件必须采用 UTF-8 编码，请转换后重新上传。");}
+    if (own !== sequence) return;
+    if (!source.trim() || source.includes("\u0000")) throw new Error("文件内容为空或包含二进制数据。");
+    const data = await api("/api/runs",{method:"POST",headers:{"Content-Type":"application/json","X-SE02-Request":"1"},body:JSON.stringify({filename:file.name,source,mode:"http",max_repairs:Number($("max-repairs").value)})});
     if (own === sequence) await selectRun(data.id); else refreshHistory();
   } catch (error) {if (own === sequence) {submitting = false; updateControls(); showError(error.message);}}
 };
 $("new-task").onclick = newTask; $("refresh-history").onclick = refreshHistory;
-$("requirement").oninput = () => {if ($("mode").value === "http") httpDraft = $("requirement").value;};
-$("mode").onchange = () => {if ($("mode").value === "http") $("requirement").value = httpDraft; setMode();};
-document.querySelectorAll("[data-example]").forEach(button => button.onclick = () => {
-  if (active(current) || submitting) return;
-  const example = button.dataset.example; $("mode").value = example === "demo" ? "mock" : "http";
-  if (example !== "demo") {httpDraft = examples[example]; $("requirement").value = httpDraft;}
-  setMode(); $("requirement").focus();
-});
+$("source-file").onchange = () => {const file = $("source-file").files[0]; $("file-info").textContent = file ? `${file.name} · ${(file.size/1024).toFixed(1)} KiB` : "尚未选择文件 · UTF-8 · 最大 32 KiB"; showError(""); updateControls();};
 document.querySelectorAll("[data-tab]").forEach(button => {
   button.onclick = () => {selectedTab = button.dataset.tab; renderTabSelection(); renderArtifact();};
   button.onkeydown = event => {if (!["ArrowLeft","ArrowRight","Home","End"].includes(event.key)) return; event.preventDefault(); const tabs = [...document.querySelectorAll("[data-tab]")], index = tabs.indexOf(button); const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length-1 : (index + (event.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length; tabs[next].click(); tabs[next].focus();};
@@ -183,6 +174,6 @@ window.addEventListener("resize",syncInspector);
 document.addEventListener("keydown",event => {if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {event.preventDefault(); if (!$("send-task").disabled) $("composer").requestSubmit();} if (event.key === "Escape") {closeSidebar(); document.body.classList.remove("mobile-inspector"); syncInspector();}});
 async function init() {
   updateControls(); syncInspector(); renderTabSelection();
-  try {settings = await api("/api/config"); $("connection-text").textContent = settings.live_available ? "真实模型已配置" : "离线演示可用"; $("model-label").textContent = `SE_02 · ${settings.live_available ? settings.model : "离线固定样例"}`; $("max-repairs").value = String(settings.max_repairs ?? 2); newTask(); await refreshHistory();} catch (error) {showError(`无法连接本地服务：${error.message} 请刷新页面重试。`); $("connection-text").textContent = "本地服务连接失败";}
+  try {settings = await api("/api/config"); $("connection-text").textContent = settings.live_available ? "CLI 模型已配置" : "CLI 密钥未配置"; $("model-label").textContent = `SE_02 · ${settings.model || "未配置模型"} · 与 CLI 共用配置`; $("max-repairs").value = String(settings.max_repairs ?? 2); newTask(); await refreshHistory();} catch (error) {showError(`无法连接本地服务：${error.message} 请刷新页面重试。`); $("connection-text").textContent = "本地服务连接失败";}
 }
 init();

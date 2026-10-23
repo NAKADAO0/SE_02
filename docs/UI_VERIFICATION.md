@@ -1,19 +1,19 @@
-# 简洁工作区验证记录
+# 文件上传工作区验证记录
 
-日期：2026-10-23；版本：0.3.0。
+日期：2026-10-23；版本：0.3.1。
 
-## 浏览器验证
+## 实际模型与浏览器验收
 
-使用本机 Edge / Playwright，连接真实本地 HTTP 服务，未替换前端 API：
+Edge / Playwright 连接本地 Web 服务，通过文件选择器上传 test_total.py。后台使用与 CLI 相同的 config.example.toml、load_config、HttpProvider 和 SE02_API_KEY，API=https://api.deepseek.com，model=deepseek-flash。
 
-- 1500×980 桌面页面与 390×844 窄屏均正常，无横向溢出、JavaScript 异常。
-- 离线 repair_pass 完成编码、审查、修复和复审；版本1/2、差异、报告、日志均可查看。
-- 下载成功版本为 Python 文件；修复预算0显示需要人工处理。
-- 刷新后历史可读取，新建任务不被旧轮询覆盖；窄屏历史与产物按钮可用。
-- 截图来自实际离线运行，不代表任意需求或真实模型调用。
+- 原始文件逐字符保留为 v1；工作流从 upload → review_0 开始，未调用编码模型生成替代文件。
+- 实际模型完成首次审查、一次修复和复审，终态 succeeded，最新报告 pass，共2个代码版本。
+- 桌面1500×980与手机390×844均正常，无JavaScript异常和横向溢出；版本、差异、审查和日志标签可切换。
+- 页面不提供需求输入、Mock或API切换；缺密钥时禁止上传提交，模型配置只由服务端读取。
+- 截图来自此次真实模型运行；证据摘要见 release/upload-http-acceptance.json。
 
-## 自动化与打包
+## 自动化回归
 
-完整 unittest 回归结果及解压验证见 release/package-verification.json。Web 测试覆盖同源校验、配置错误、成功/失败/修复耗尽、历史、产物完整性、下载以及连续轮询。源码包包含静态资源，wheel 已实际构建并检查三种静态文件。
+新增上传测试覆盖原文与CRLF保留、不调用coder、格式/大小/空文件/路径拒绝、重启历史及CLI配置一致性。完整测试数量与源码解压验证见 release/package-verification.json。
 
-本次新增 UI 使用离线模型验收；没有重新执行外部模型调用。既有真实 DeepSeek 验收记录见 FINAL_ACCEPTANCE.md。
+上传文件仅供模型静态审查，不在本机执行代码，不运行pytest。succeeded指当前代码版本通过模型审查。

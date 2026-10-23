@@ -92,7 +92,7 @@ class JobManager:
 
     def config(self):
         return self.safe({'model':self.settings.model, 'live_available': self._provider is not None or self._factory is not None,
-            'max_repairs': self.settings.max_repairs, 'version':'0.3.0'})
+            'max_repairs': self.settings.max_repairs, 'version':'0.3.1'})
 
     def _save(self, job):
         target = self._directory('ui_metadata', job['id'] + '.json')
@@ -112,7 +112,7 @@ class JobManager:
             try:
                 job = self._read_json(self._directory('ui_metadata', path.name))
                 required = {'id','title','task','mode','scenario','status','created_at','repair_count','current_node','core_run_id','error','result','max_repairs'}
-                if not isinstance(job,dict) or set(job) != required or job['id'] != path.stem:
+                if not isinstance(job,dict) or set(job) not in (required, required | {'filename','uploaded_source'}) or job['id'] != path.stem:
                     continue
                 if job['mode'] not in ('http','mock') or job['scenario'] not in SCENARIOS or job['status'] not in TERMINAL | {'pending','running'}:
                     continue
@@ -122,6 +122,9 @@ class JobManager:
                 if type(job['repair_count']) is not int or not 0 <= job['repair_count'] <= 2 or type(job['max_repairs']) is not int or not 0 <= job['max_repairs'] <= 2:
                     continue
                 if not isinstance(job['title'],str) or not isinstance(job['created_at'],str):
+                    continue
+                if 'uploaded_source' in job and (not isinstance(job['uploaded_source'],str)
+                        or not isinstance(job['filename'],str) or len(job['uploaded_source'].encode('utf-8'))>32768):
                     continue
                 # Stored references are never accepted as paths; derived artifacts use fixed names.
                 job['result'] = None
@@ -134,12 +137,25 @@ class JobManager:
 
     def runs(self):
         with self._lock:
-            return {'runs':[self.safe({k:j[k] for k in ('id','title','status','mode','created_at','repair_count')})
+            return {'runs':[self.safe({**{k:j[k] for k in ('id','title','status','mode','created_at','repair_count')},'filename':j.get('filename')})
                 for j in sorted(self._jobs.values(), key=lambda j:j['created_at'], reverse=True)]}
 
     def submit(self, body):
-        if not isinstance(body,dict) or set(body) - {'task','mode','scenario','max_repairs'}:
+        if not isinstance(body,dict) or set(body) - {'task','mode','scenario','max_repairs','filename','source'}:
             raise ApiError(400,'Unknown request fields or invalid JSON object')
+        uploaded = 'filename' in body or 'source' in body
+        if uploaded:
+            filename, source = body.get('filename'), body.get('source')
+            if (not isinstance(filename,str) or not re.fullmatch(r'[^/\\\x00-\x1f:]{1,120}\.py',filename,re.I)
+                    or filename in ('.py','..py') or not isinstance(source,str) or not source.strip()
+                    or '\x00' in source or any(0xD800 <= ord(c) <= 0xDFFF for c in source)
+                    or len(source.encode('utf-8',errors='replace')) > 32768):
+                raise ApiError(400,'Upload a nonempty UTF-8 .py file of at most 32 KiB')
+            if body.get('mode','http') != 'http' or 'scenario' in body or 'task' in body:
+                raise ApiError(400,'Uploaded files use the CLI HTTP model configuration only')
+            if self._secret and self._secret in source:
+                raise ApiError(400,'File must not contain the configured credential')
+            body = dict(body, mode='http', task='审查上传的 Python 文件 '+filename+'，检查语法、逻辑、边界条件和潜在缺陷；修复时保持原有功能和公开接口。')
         mode, scenario = body.get('mode','mock'), body.get('scenario','direct_pass')
         repairs = body.get('max_repairs', self.settings.max_repairs)
         if not isinstance(mode,str) or not isinstance(scenario,str) or mode not in ('mock','http') or scenario not in SCENARIOS or type(repairs) is not int or not 0 <= repairs <= 2:
@@ -163,6 +179,8 @@ class JobManager:
             job = {'id':identifier,'title':description.strip().splitlines()[0][:80],'task':description,'mode':mode,
                 'scenario':scenario,'status':'pending','created_at':datetime.now(timezone.utc).isoformat(),
                 'repair_count':0,'current_node':None,'core_run_id':None,'error':None,'result':None,'max_repairs':repairs}
+            if uploaded:
+                job.update(title=filename, filename=filename, uploaded_source=source)
             try:
                 self._save(job)
             except OSError:
@@ -186,7 +204,9 @@ class JobManager:
                         job['repair_count'] = max(job['repair_count'],int(event.node.split('_')[1]))
                     self._save(job)
             result = Workflow(provider, root=self._directory('artifacts',identifier), on_event=event_callback).run(
-                Task(task_id=identifier, description=job['task']), WorkflowConfig(max_repairs=job['max_repairs']))
+                Task(task_id=identifier, description=job['task']), WorkflowConfig(max_repairs=job['max_repairs']),
+                initial_code=CodeArtifact(artifact_id='upload-'+identifier,version=1,source=job['uploaded_source'],
+                    explanation='Original uploaded Python source') if 'uploaded_source' in job else None)
             with self._lock:
                 job.update(core_run_id=result.state.run_id, status=result.state.status,repair_count=result.state.repair_count,
                     current_node=result.state.current_node,error='Workflow failed; inspect the timeline.' if result.state.error else None,

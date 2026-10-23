@@ -80,7 +80,7 @@ class WebSecurityTests(WebTests):
     def test_csrf_headers_content_and_limit(self):
         self.assertEqual(self.request('POST','/api/runs',{}, {'X-SE02-Request':'0'})[0],403)
         self.assertEqual(self.request('POST','/api/runs',{}, {'Content-Type':'text/plain'})[0],415)
-        self.assertEqual(self.request('POST','/api/runs',{'task':'x'*66000})[0],413)
+        self.assertEqual(self.request('POST','/api/runs',{'task':'x'*270000})[0],413)
         self.assertEqual(self.request('GET','/%2e%2e/config.example.toml')[0],404)
         self.assertEqual(self.request('GET','/api/runs/'+'f'*32)[0],404)
     def test_bad_state_does_not_crash_and_download_forbidden(self):
