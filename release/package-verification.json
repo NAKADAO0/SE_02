@@ -1,7 +1,7 @@
 {
   "version": "0.2.0",
-  "tests_run": 87,
-  "tests_passed": 85,
+  "tests_run": 88,
+  "tests_passed": 86,
   "tests_skipped": 2,
   "failures": 0,
   "extracted_fresh_venv_without_pip": true,

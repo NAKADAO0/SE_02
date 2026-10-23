@@ -30,6 +30,7 @@ def allowed(relative: Path) -> bool:
         return False
     return (relative.as_posix() in ROOT_FILES
             or relative.as_posix() == "scripts/build_release.py"
+            or (len(parts) >= 3 and parts[:2] == ("docs", "screenshots") and relative.suffix.lower() == ".png")
             or (len(parts) > 1 and parts[0] in TREES and relative.suffix.lower() in EXTENSIONS))
 
 

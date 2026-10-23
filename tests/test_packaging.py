@@ -77,6 +77,14 @@ class PackagingTests(unittest.TestCase):
         self.assertNotEqual(self.build().returncode, 0)
         self.assertFalse(self.output.exists())
 
+    def test_only_documentation_screenshots_are_included(self):
+        self.write('docs/screenshots/runtime.png', 'screenshot-fixture')
+        self.write('examples/private-image.png', 'not part of source delivery')
+        self.assertEqual(self.build().returncode, 0)
+        with zipfile.ZipFile(self.output) as archive:
+            self.assertIn('docs/screenshots/runtime.png', archive.namelist())
+            self.assertNotIn('examples/private-image.png', archive.namelist())
+
     @unittest.skipUnless(os.name == "nt", "Windows junction boundary")
     def test_rejects_external_directory_junction(self):
         outside = Path(self.temp.name) / "outside"

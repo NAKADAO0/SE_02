@@ -47,3 +47,5 @@ python -m venv .venv
 源码包不携带第三方 wheel、虚拟环境、私密 runs 或真实服务密钥；仅包含 release 下人工检查过的公开任务运行证据。Mock 验收无需外部服务；HTTP 模式需另行配置环境凭据。
 
 最终交付另存于 `deliverables/SE_02-source.zip` 及 `.sha256` 并随 Git 发布，重建命令为 `python scripts/build_release.py --output deliverables/SE_02-source.zip`；该目录不在打包白名单内，因此不会把旧 ZIP 再放进新 ZIP。
+
+2026-10-23 文档更新：额外允许 docs/screenshots 下的 PNG，使 README 运行截图在解压后仍可查看。其他目录的图片仍不进入白名单。新回归测试覆盖此限制。
