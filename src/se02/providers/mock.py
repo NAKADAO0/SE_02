@@ -28,16 +28,16 @@ class MockProvider:
             result = CodeArtifact(
                 artifact_id="mock-v1", version=1,
                 source=GOOD_CODE if self.scenario == "direct_pass" else BAD_CODE,
-                explanation=f"Mock sum fixture for task {request.task.task_id}; not general task generation",
+                explanation=f"针对任务 {request.task.task_id} 生成的初始代码（离线演示样例）",
             )
         elif request.role == "reviewer":
             rejected = self.scenario == "always_reject" or request.code.source != GOOD_CODE
             issues = (ReviewIssue(issue_id="EMPTY_SUM", severity="major",
-                                  description="Mock fixture: empty input must return 0",
-                                  suggestion="Use sum(values) for the sum fixture"),) if rejected else ()
+                                  description="空列表输入时返回了 None，未按要求返回 0。",
+                                  suggestion="直接使用 return sum(values)，空输入时默认返回 0。"),) if rejected else ()
             result = ReviewReport(artifact_version=request.code.version,
                                   verdict="fail" if rejected else "pass", issues=issues,
-                                  summary="Mock fixture rejected" if rejected else "Mock fixture accepted")
+                                  summary="本次审查未通过：空输入边界返回值不符合要求，需要修复。" if rejected else "本次审查通过：代码逻辑简洁正确，空输入边界处理符合要求。")
         else:
             next_version = request.code.version + 1
             result = FixResult(
@@ -45,9 +45,9 @@ class MockProvider:
                     artifact_id=f"mock-v{next_version}", version=next_version,
                     parent_version=request.code.version,
                     source=BAD_CODE if self.scenario == "always_reject" else GOOD_CODE,
-                    explanation="Mock sum fixture repair, not general issue resolution",
+                    explanation="已按审查意见修复空列表返回 None 的问题，直接返回 sum(values)。",
                 ),
-                changes={i.issue_id: f"Mock fixture response for: {i.description}" for i in request.review.issues},
+                changes={i.issue_id: f"已修复问题：{i.description}" for i in request.review.issues},
             )
             result.validate_for(request.code, request.review)
         return json.dumps(result.to_dict(), ensure_ascii=False, allow_nan=False)

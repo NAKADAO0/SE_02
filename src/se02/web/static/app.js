@@ -1,6 +1,7 @@
 "use strict";
 const $ = id => document.getElementById(id);
 const labels = {pending:"等待执行",running:"协作中",succeeded:"审查通过",failed:"执行失败",needs_attention:"需要人工处理",completed:"已完成",skipped:"已跳过"};
+const severityLabels = {blocker:"严重缺陷",major:"主要问题",minor:"次要建议"};
 const roles = {upload:"文件上传",code:"编码 Agent",coder:"编码 Agent",coding:"编码 Agent",review:"审查 Agent",repair:"修复 Agent",fix:"修复 Agent"};
 function timelineRole(node) {
   const review = /^review_(\d+)$/.exec(node);
@@ -102,12 +103,33 @@ function renderRun() {
   for (const stage of stages) {
     const card = el("article","agent-card"), info = el("div","agent-info"), title = el("div","agent-title");
     title.append(el("strong","",timelineRole(stage.node)),el("span","",labels[stage.status] || stage.status));
-    info.append(title,el("div","agent-description",stage.detail || (stage.status === "running" ? "正在处理任务…" : `第 ${stage.attempt ?? 1} 次 · ${stage.elapsed_ms == null ? "已记录执行状态" : `${Math.round(stage.elapsed_ms)} ms`}`)));
+    const elapsedText = stage.elapsed_ms == null ? "已记录执行状态" : `耗时 ${Math.round(stage.elapsed_ms)} ms`;
+    const reviewMatch = /^review_(\d+)$/.exec(stage.node);
+    const reviewReport = reviewMatch ? (state.reviews?.[Number(reviewMatch[1])] || state.reviews?.find(r => r.artifact_version === stage.artifact_version)) : null;
+    if (reviewMatch && stage.status === "completed" && reviewReport) {
+      info.append(title, el("div","agent-description",`针对代码版本 v${reviewReport.artifact_version} · 第 ${stage.attempt ?? 1} 次执行 · ${elapsedText}`));
+      const conclusionBox = el("div", `review-conclusion ${reviewReport.verdict === "pass" ? "pass" : "fail"}`);
+      const verdictBadge = reviewReport.verdict === "pass" ? "✓ 本次审查结论：审查通过" : `✗ 本次审查结论：未通过（发现 ${reviewReport.issues?.length || 0} 项问题，需修复）`;
+      conclusionBox.append(el("strong","review-conclusion-title",verdictBadge), el("p","review-conclusion-summary",reviewReport.summary || "暂无详细结论"));
+      if (reviewReport.issues?.length) {
+        const issueList = el("div","review-conclusion-issues");
+        for (const issue of reviewReport.issues) {
+          const item = el("div","review-conclusion-issue");
+          item.append(el("span","issue-tag",`[${severityLabels[issue.severity] || issue.severity || "问题"}] `), el("span","",`${issue.description || ""}${issue.suggestion ? `（建议：${issue.suggestion}）` : ""}`));
+          issueList.append(item);
+        }
+        conclusionBox.append(issueList);
+      }
+      info.append(conclusionBox);
+    } else {
+      info.append(title,el("div","agent-description",stage.detail ? `${stage.detail}（${elapsedText}）` : (stage.status === "running" ? "正在处理任务…" : `第 ${stage.attempt ?? 1} 次 · ${elapsedText}`)));
+    }
     card.append(el("div","agent-icon",["completed","succeeded"].includes(stage.status) ? "✓" : "·"),info); timeline.append(card);
   }
   if (!stages.length) timeline.append(el("p","muted","任务已接收，等待 Agent 开始协作…"));
   const result = $("result-message"); result.replaceChildren();
-  const summary = state.status === "succeeded" ? "✓ 审查已通过，可下载最终代码。" : state.status === "needs_attention" ? "已达到修复上限，请查看审查意见并人工处理。" : state.status === "failed" ? state.error || "任务执行失败，请查看日志。" : "Agent 正在协作，代码和审查结果将持续更新。";
+  const latestReview = state.review || state.reviews?.at(-1);
+  const summary = state.status === "succeeded" ? `✓ 审查已通过，可下载最终代码。${latestReview?.summary ? `\n最终审查结论：${latestReview.summary}` : ""}` : state.status === "needs_attention" ? `已达到修复上限，请查看审查意见并人工处理。${latestReview?.summary ? `\n最新审查结论：${latestReview.summary}` : ""}` : state.status === "failed" ? state.error || "任务执行失败，请查看日志。" : "Agent 正在协作，代码和审查结果将持续更新。";
   result.append(el("div","",summary),el("small","",`修复 ${state.repair_count ?? 0} 次 · ${state.versions?.length ?? 0} 个代码版本 · 代码未自动执行`));
   renderArtifact();
 }
@@ -135,7 +157,24 @@ function renderArtifact() {
   } else if (selectedTab === "review") {
     const reports = current.reviews?.length ? current.reviews : current.review ? [current.review] : [];
     if (!reports.length) target.append(el("div","tab-empty","等待审查 Agent 给出意见…"));
-    for (const report of reports) {const card = el("article","review-card"); card.append(el("h3","",`版本 ${report.artifact_version ?? "—"} · ${report.verdict === "pass" ? "审查通过" : "需要修复"}`),el("div","",report.summary || "")); for (const issue of report.issues || []) {const row = el("div","review-issue"); row.append(el("strong","",issue.severity || "审查意见"),el("p","",issue.description || ""),el("div","",issue.suggestion || "")); card.append(row);} target.append(card);}
+    reports.forEach((report, idx) => {
+      const card = el("article","review-card");
+      const roundLabel = idx === 0 ? "第 1 次审查" : `第 ${idx} 轮复审`;
+      card.append(
+        el("h3","",`${roundLabel}（版本 v${report.artifact_version ?? "—"}）· ${report.verdict === "pass" ? "✓ 审查通过" : "✗ 需要修复"}`),
+        el("div","review-summary-box",`本次审查结论：${report.summary || "暂无结论"}`)
+      );
+      for (const issue of report.issues || []) {
+        const row = el("div","review-issue");
+        row.append(
+          el("strong","",severityLabels[issue.severity] || issue.severity || "审查意见"),
+          el("p","",`问题：${issue.description || ""}`),
+          el("div","",`修改建议：${issue.suggestion || ""}`)
+        );
+        card.append(row);
+      }
+      target.append(card);
+    });
   } else {
     if (!current.events?.length) target.append(el("div","tab-empty","暂时没有执行日志。"));
     for (const event of current.events || []) {const row = el("article","log-row"); row.append(el("time","",event.created_at || ""),el("p","",`${event.phase === "provider" ? "模型请求" : "工作流节点"} · ${event.node} · ${labels[event.status] || event.status} · 第 ${event.attempt ?? 1} 次`)); if (event.detail) row.append(el("p","",event.detail)); target.append(row);}

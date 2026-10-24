@@ -84,7 +84,7 @@ def build(project_root: Path, output: Path) -> Path:
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_bytes(payload)
     output.with_suffix(output.suffix + ".sha256").write_text(
-        f"{hashlib.sha256(payload).hexdigest()}  {output.name}\n", encoding="ascii")
+        f"{hashlib.sha256(payload).hexdigest()}  {output.name}\n", encoding="utf-8")
     return output
 
 

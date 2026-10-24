@@ -75,7 +75,7 @@ class ArtifactStore:
         target = self.resolve_ref(ref)
         try:
             with target.open("a", encoding="utf-8", newline="\n") as stream:
-                stream.write(json.dumps(data, ensure_ascii=False, allow_nan=False) + "\n")
+                stream.write(json.dumps(data, ensure_ascii=True, allow_nan=False) + "\n")
                 stream.flush()
                 os.fsync(stream.fileno())
             return ref

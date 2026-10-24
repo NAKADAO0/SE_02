@@ -162,13 +162,3 @@ $env:SE02_API_KEY = [System.Net.NetworkCredential]::new('', $credential).Passwor
 ```
 
 安装后也可执行 `.\.venv\Scripts\se02.exe run ...`。默认网络超时 60 秒、重试一次、最多两轮修复；终态为 succeeded / failed / needs_attention。`--json` 输出机器可读结果，进度在 stderr；`--quiet` 关闭进度。代码仅保存，不自动执行。
-
-## 交付物
-
-源码包：[SE_02-source.zip](https://github.com/NAKADAO0/SE_02/blob/main/deliverables/SE_02-source.zip)，校验文件：[SHA256](https://github.com/NAKADAO0/SE_02/blob/main/deliverables/SE_02-source.zip.sha256)。本地对应 deliverables 目录。包内含源码、测试、全部说明、样例和脱敏真实验收证据，不含密钥、虚拟环境和私密 runs。
-
-本机重建：`python scripts/build_release.py --output deliverables/SE_02-source.zip`。历史 CLI 交付回归为 88 项测试、86 通过、2 项因 Windows 符号链接权限跳过；当前 UI 回归见 [UI 验证记录](docs/UI_VERIFICATION.md)；真实模型三类任务及修复路径通过。
-
-## 作业背景
-
-依据用户提供的三张课程截图整理：至少两个 Agent 协作、消息传递或共享状态、基本顺序控制；评分包括流程完整性 40%、Agent 协作 30%、可扩展性 20%、文档 10%。截图中的两周是课程项目周期；本仓库当前安排按 2026-10-25 24:00 截止时间倒排，见开发流程文档。以上为作业背景，具体设计选择与课程硬性要求在文档中分别标注。

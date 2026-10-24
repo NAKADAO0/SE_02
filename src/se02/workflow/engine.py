@@ -98,7 +98,15 @@ class _Execution:
             output = self.agents[role].run(context)
         validate_output(role, output, context)
         ref, version = save(output)
-        self._event("completed", version=version)
+        detail = None
+        if role == "reviewer":
+            verdict_text = "审查通过" if output.verdict == "pass" else f"审查未通过（发现 {len(output.issues)} 项问题）"
+            detail = f"本次审查结论【{verdict_text}】：{output.summary}"
+        elif role == "fixer":
+            detail = f"已完成代码修复（生成版本 v{version}）：{output.code_artifact.explanation}"
+        elif role == "coder":
+            detail = f"已生成初始代码（版本 v{version}）：{output.explanation}"
+        self._event("completed", version=version, detail=detail)
         self._save_state(self.state)
         return output, ref
 
@@ -158,7 +166,7 @@ class _Execution:
                 self._event("running", version=1)
                 artifact = initial_code
                 code_ref, _ = self._save_code(artifact)
-                self._event("completed", version=1, detail="Uploaded source preserved as version 1")
+                self._event("completed", version=1, detail="已保存上传的源码为初始版本（v1）")
                 self._save_state(self.state)
                 code_sender = "user"
             else:
@@ -179,7 +187,7 @@ class _Execution:
                     if index < self.config.max_repairs:
                         self._append_event(ExecutionEvent(
                             run_id=self.store.run_id, node=f"repair_{index + 1}", status="skipped",
-                            artifact_version=artifact.version, detail="Review passed; no repair required",
+                            artifact_version=artifact.version, detail="本次审查已通过，无需继续修复",
                         ))
                     return self._finish("succeeded")
                 if index == self.config.max_repairs:

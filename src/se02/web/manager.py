@@ -155,7 +155,7 @@ class JobManager:
                 raise ApiError(400,'Uploaded files use the CLI HTTP model configuration only')
             if self._secret and self._secret in source:
                 raise ApiError(400,'File must not contain the configured credential')
-            body = dict(body, mode='http', task='审查上传的 Python 文件 '+filename+'，检查语法、逻辑、边界条件和潜在缺陷；修复时保持原有功能和公开接口。')
+            body = dict(body, mode='http', task='审查上传的 Python 文件 '+filename+'，重点检查核心逻辑与关键边界缺陷（如除零异常 ZeroDivisionError、空输入等），每次审查完后用中文给出本次审查结论；修复时遵循最小改动原则，保持代码简洁直观，保留原有功能和公开接口。')
         mode, scenario = body.get('mode','mock'), body.get('scenario','direct_pass')
         repairs = body.get('max_repairs', self.settings.max_repairs)
         if not isinstance(mode,str) or not isinstance(scenario,str) or mode not in ('mock','http') or scenario not in SCENARIOS or type(repairs) is not int or not 0 <= repairs <= 2:
